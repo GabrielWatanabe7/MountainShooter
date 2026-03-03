@@ -8,7 +8,7 @@ from pygame.font import Font
 
 from code.enemy import Enemy
 from code.entitymediator import EntityMediator
-from code.Const import COLOR_WHITE, WIN_HEIGHT, MENU_OPTION, EVENT_ENEMY, SPAWN_TIME
+from code.Const import C_WHITE, WIN_HEIGHT, MENU_OPTION, EVENT_ENEMY, SPAWN_TIME, C_GREEN, C_CYAN
 from code.entity import Entity
 from code.entityFactory import EntityFactory
 from code.player import Player
@@ -18,17 +18,15 @@ class Level:
     def __init__(self, window, name, game_mode):
         self.window = window
         self.name = name
-        self.game_mode = game_mode #Modo de Jogo
-        self.entity_list:list[Entity] = []
+        self.game_mode = game_mode  # Modo de Jogo
+        self.entity_list: list[Entity] = []
         self.entity_list.extend(EntityFactory.get_entity('Level1Bg'))
         self.entity_list.append(EntityFactory.get_entity('Player1'))
         if game_mode in [MENU_OPTION[1], MENU_OPTION[2]]:
             self.entity_list.append(EntityFactory.get_entity('Player2'))
         pygame.time.set_timer(EVENT_ENEMY, SPAWN_TIME)
 
-        self.timeout = 20000 # 20 segundos
-
-
+        self.timeout = 20000  # 20 segundos
 
     def run(self):
         pygame.mixer.music.load(f'./asset/{self.name}.mp3')
@@ -43,28 +41,36 @@ class Level:
                     shoot = ent.shoot()
                     if shoot is not None:
                      self.entity_list.append(shoot)
+                if ent.name == 'Player1':
+                    self.level_text(text_size=14, text=f'Player1 - Health: {ent.health} | Score: {ent.score}',text_color=C_GREEN, text_pos=(10, 25))
+                if ent.name == 'Player2':
+                    self.level_text(text_size=14, text=f'Player2 - Health: {ent.health} | Score: {ent.score}',text_color=C_CYAN, text_pos=(10, 45))
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
 
                 if event.type == EVENT_ENEMY:
-                   enemy_choice = random.choice(('Enemy1', 'Enemy2'))
-                   self.entity_list.append(EntityFactory.get_entity(enemy_choice))
+                    enemy_choice = random.choice(('Enemy1', 'Enemy2'))
+                    self.entity_list.append(EntityFactory.get_entity(enemy_choice))
 
-            # printed text 
-                self.level_text(text_size=14, text=f'{self.name} - Timeout: {self.timeout / 1000 : 1f}s', text_color=COLOR_WHITE, text_pos=(10, 5))
-                self.level_text(text_size=14, text=f'fps: {clock.get_fps():.0f}', text_color=COLOR_WHITE, text_pos=(10, WIN_HEIGHT - 35))
-                self.level_text(text_size=14, text=f'entidades: {len(self.entity_list)}', text_color=COLOR_WHITE, text_pos=(10, WIN_HEIGHT - 20))
+        # printed text
+            self.level_text(text_size=14, text=f'{self.name} - Timeout: {self.timeout / 1000 : 1f}s',
+                        text_color=C_WHITE, text_pos=(10, 5))
+            self.level_text(text_size=14, text=f'fps: {clock.get_fps():.0f}', text_color=C_WHITE,
+                        text_pos=(10, WIN_HEIGHT - 35))
+            self.level_text(text_size=14, text=f'entidades: {len(self.entity_list)}', text_color=C_WHITE,
+                        text_pos=(10, WIN_HEIGHT - 20))
             pygame.display.flip()
-            # Collisions
+
+        # Collisions
             EntityMediator.verify_collision(entity_list=self.entity_list)
             EntityMediator.verify_health(entity_list=self.entity_list)
             pass
 
-
     def level_text(self, text_size: int, text: str, text_color: tuple, text_pos: tuple, text_surface=None):
-                text_font: Font = pygame.font.SysFont(name="Lucida Sans Typewriter", size=text_size)
-                text_surf: Surface = text_font.render(text, True, text_color).convert_alpha()
-                text_rect: Rect = text_surf.get_rect(left=text_pos[0], top=text_pos[1])
-                self.window.blit(source=text_surf, dest=text_rect)
+        text_font: Font = pygame.font.SysFont(name="Lucida Sans Typewriter", size=text_size)
+        text_surf: Surface = text_font.render(text, True, text_color).convert_alpha()
+        text_rect: Rect = text_surf.get_rect(left=text_pos[0], top=text_pos[1])
+        self.window.blit(source=text_surf, dest=text_rect)
